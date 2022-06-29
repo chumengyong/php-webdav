@@ -2,8 +2,12 @@
 
 require __DIR__ . '/ContentType.php';
 
-/**
- * @throws Exception
+/** 传入文件夹路径
+ *  如果 flag 为 true, 返回文件夹下所有子文件列表
+ *  如果 flag 为 false, 返回文件夹自身的信息列表
+ * @param string $dirs
+ * @param bool $flag
+ * @return array
  */
 function get_files(string $dirs, bool $flag = true): array
 {
@@ -114,19 +118,33 @@ function set_response_node(array $files, DOMDocument &$dom, DOMElement &$start_n
 {
     $response_node = $dom->createElement('D:response');
     $href_node = $dom->createElement('D:href');
+    // 如果是第一个 response_node
     if ($is_first_node) {
-        if ($uri[-1] === '/') {
+        if ($uri === '/') {
+            $href_node->textContent = '/';
+        } elseif ($uri[-1] === '/') {
             $href_node->textContent = substr($uri, 0, strlen($uri) - 1);
+            if ($files['is_dir']) {
+                $href_node->textContent = substr($uri, 0, strlen($uri) - 1);
+            }
         } else {
             $href_node->textContent = $uri;
+            if ($files['is_dir']) {
+                $href_node->textContent = $uri . $files['filename'] . '/';
+            }
         }
-    } elseif ($uri === '/') {
-        $href_node->textContent = $uri . $files['filename'];
+    // 当 url 为 index.php/files/时走这, 为 index.php 时也走这
     } elseif ($uri[-1] == '/') {
         $href_node->textContent = $uri . $files['filename'];
-    }
-    else {
+        if ($files['is_dir']) {
+            $href_node->textContent = $uri . $files['filename'] . '/';
+        }
+    // 当 url 为 index.php/files 时走这
+    } else {
         $href_node->textContent = $uri . '/' . $files['filename'];
+        if ($files['is_dir']) {
+            $href_node->textContent = $uri . $files['filename'] . '/';
+        }
     }
 
     $response_node->appendChild($href_node);

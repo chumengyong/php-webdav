@@ -71,7 +71,6 @@ class WebDav
                 header('Last-Modified: ' . get_gmt_time($fileObj->getMTime()));
                 header('Etag: ' . get_etag_by_path($this->path));
                 set_content_type_header_by_path($this->path);
-                // 如果分片过大
                 $fileObj->fseek($start);
                 echo $fileObj->fread($r);
             } else {
