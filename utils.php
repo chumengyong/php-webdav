@@ -1,7 +1,5 @@
 <?php
 
-require __DIR__ . '/ContentType.php';
-
 /** 传入文件夹路径
  *  如果 flag 为 true, 返回文件夹下所有子文件列表
  *  如果 flag 为 false, 返回文件夹自身的信息列表
@@ -75,17 +73,14 @@ function get_gmt_time(string $timestamp = null): string
  */
 function set_content_type_header_by_path(string $path): void
 {
-    global $content_type_array;
-    $suffix = substr($path, strrpos($path, '.') + 1);
-    $content_type = $content_type_array[$suffix] ?? 'application/octet-stream';
+    $content_type = get_content_type_by_path($path);
     header('Content-type: ' . $content_type);
 }
 
 function get_content_type_by_path(string $path): string
 {
-    global $content_type_array;
-    $suffix = substr($path, strrpos($path, '.') + 1);
-    return $content_type_array[$suffix] ?? 'application/octet-stream';
+    $fin = new finfo(FILEINFO_MIME_TYPE);
+    return $fin->file($path);
 }
 
 /** 通过对文件名和文件修改时间进行 sha1 计算得出 etag
@@ -125,12 +120,16 @@ function set_response_node(array $files, DOMDocument &$dom, DOMElement &$start_n
         } elseif ($uri[-1] === '/') {
             $href_node->textContent = substr($uri, 0, strlen($uri) - 1);
             if ($files['is_dir']) {
-                $href_node->textContent = substr($uri, 0, strlen($uri) - 1);
+                $href_node->textContent = substr($uri, 0, strlen($uri) - 1) . '/';
+            } else {
+
             }
         } else {
             $href_node->textContent = $uri;
             if ($files['is_dir']) {
-                $href_node->textContent = $uri . $files['filename'] . '/';
+                $href_node->textContent = $uri . '/';
+            } else {
+
             }
         }
     // 当 url 为 index.php/files/时走这, 为 index.php 时也走这
@@ -146,6 +145,7 @@ function set_response_node(array $files, DOMDocument &$dom, DOMElement &$start_n
             $href_node->textContent = $uri . $files['filename'] . '/';
         }
     }
+
 
     $response_node->appendChild($href_node);
 

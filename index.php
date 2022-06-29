@@ -32,9 +32,10 @@ class WebDav
         $start_node->setAttribute('xmlns:D', 'DAV:');
         $dom->appendChild($start_node);
 
+        // 如果有 DEPTH: 0, 请求头, 封装一个文件的 response_node 返回给客户端
         if (isset($_SERVER['HTTP_DEPTH']) && $_SERVER['HTTP_DEPTH'] == 0) {
             $f = get_files($this->path, false);
-            set_response_node($f, $dom, $start_node, $this->uri);
+            set_response_node($f, $dom, $start_node, $this->uri, true);
         } else {
             $self_path_file = get_files($this->path, false);
             set_response_node($self_path_file, $dom, $start_node, $this->uri, true);
